@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/tela_inicial.dart';
+import 'screens/login_page.dart';
 
 void main() {
   runApp(const PesquisaApp());
@@ -18,7 +18,7 @@ class PesquisaApp extends StatelessWidget {
           border: OutlineInputBorder(),
         ),
       ),
-      home: const TelaInicial(),
+      home: const LoginPage(),
       debugShowCheckedModeBanner: false,
     );
   }
