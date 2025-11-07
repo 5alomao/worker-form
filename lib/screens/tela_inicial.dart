@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'parte1_perfil.dart'; // Certifique-se que este arquivo existe no seu projeto
+import 'parte1_perfil.dart';
+import 'visualizar_resultados.dart';
 
 class TelaInicial extends StatelessWidget {
-  const TelaInicial({super.key});
+  final int userId;
+
+  const TelaInicial({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        // leading: IconButton(
-        //   icon: const Icon(Icons.arrow_back, color: Colors.white),
-        //   onPressed: () {
-        //     if (Navigator.of(context).canPop()) {
-        //       Navigator.of(context).pop();
-        //     }
-        //   },
-        // ),
-        title: const Text("Formulário", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Pesquisa Profissional",
+          style: TextStyle(color: Colors.white),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
+        automaticallyImplyLeading: false, // Remove botão voltar
       ),
       backgroundColor: Colors.white,
       body: Padding(
@@ -27,15 +26,12 @@ class TelaInicial extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: const EdgeInsets.only(
-                top: 32.0,
-                bottom: 32.0,
-              ), // Espaçamento para destacar o título no "topo"
+              padding: const EdgeInsets.only(top: 32.0, bottom: 32.0),
               child: Text(
                 "Pesquisa sobre Expectativas Profissionais",
-                textAlign: TextAlign.center, // Alinhamento centralizado
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold, // Estilo H1
+                  fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
@@ -43,41 +39,104 @@ class TelaInicial extends StatelessWidget {
 
             Expanded(
               child: Column(
-                // mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 200),
+                  const Text(
+                    "Escolha uma das opções abaixo:",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 60),
+
+                  // Botão Responder Formulário
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 20,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => Parte1Perfil(userId: userId),
+                          ),
+                        );
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.edit_note, size: 24),
+                          SizedBox(width: 12),
+                          Text("Responder Formulário"),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Botão Visualizar Resultados
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 20,
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.0),
+                        ),
+                        side: const BorderSide(color: Colors.blue, width: 2),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                VisualizarResultados(userId: userId),
+                          ),
+                        );
+                      },
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.analytics_outlined, size: 24),
+                          SizedBox(width: 12),
+                          Text("Visualizar Resultados"),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 50),
+
                   const Text(
                     "Responda algumas perguntas sobre seus planos de carreira e oportunidades de emprego.\nLeva menos de 5 minutos!",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16.0, height: 1.5),
-                  ),
-                  const SizedBox(height: 40),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 40,
-                        vertical: 15,
-                      ),
-                      textStyle: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          30.0,
-                        ),
-                      ),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                      height: 1.5,
                     ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const Parte1Perfil()),
-                      );
-                    },
-                    child: const Text("Começar"),
                   ),
                 ],
               ),

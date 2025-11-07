@@ -2,7 +2,28 @@ import 'package:flutter/material.dart';
 import 'finalizacao.dart';
 
 class Parte3Expectativas extends StatefulWidget {
-  const Parte3Expectativas({super.key});
+  final int userId;
+  final String nome;
+  final String idade;
+  final String escolaridade;
+  final String situacao;
+  final String planoCarreira;
+  final String areaInteresse;
+  final String experiencia;
+  final String descricaoExperiencia;
+
+  const Parte3Expectativas({
+    super.key,
+    required this.userId,
+    required this.nome,
+    required this.idade,
+    required this.escolaridade,
+    required this.situacao,
+    required this.planoCarreira,
+    required this.areaInteresse,
+    required this.experiencia,
+    required this.descricaoExperiencia,
+  });
 
   @override
   State<Parte3Expectativas> createState() => _Parte3ExpectativasState();
@@ -14,19 +35,41 @@ class _Parte3ExpectativasState extends State<Parte3Expectativas> {
   String palavra = '';
   String expectativas = '';
 
+  Future<void> _finalizarFormulario() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      // Preparar dados do formulário para passar para TelaFinal
+      Map<String, dynamic> formData = {
+        'nome': widget.nome,
+        'idade': widget.idade,
+        'escolaridade': widget.escolaridade,
+        'situacao': widget.situacao,
+        'plano_carreira': widget.planoCarreira,
+        'area_interesse': widget.areaInteresse,
+        'experiencia': widget.experiencia,
+        'descricao_experiencia': widget.descricaoExperiencia,
+        'preocupacao': preocupacao,
+        'palavra_futuro': palavra,
+        'expectativas': expectativas,
+      };
+
+      // Navegar para tela final
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TelaFinal(userId: widget.userId, formData: formData),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
+        automaticallyImplyLeading: false, // Remove o botão voltar
         title: const Text(
           "Formulário - Etapa 3/3",
           style: TextStyle(color: Colors.white),
@@ -100,17 +143,7 @@ class _Parte3ExpectativasState extends State<Parte3Expectativas> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const TelaFinal(),
-                        ),
-                      );
-                    }
-                  },
+                  onPressed: _finalizarFormulario,
                   child: const Text("FINALIZAR"),
                 ),
               ),

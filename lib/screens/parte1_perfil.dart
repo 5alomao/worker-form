@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'parte2_planos.dart';
 
 class Parte1Perfil extends StatefulWidget {
-  const Parte1Perfil({super.key});
+  final int userId;
+
+  const Parte1Perfil({super.key, required this.userId});
 
   @override
   State<Parte1Perfil> createState() => _Parte1PerfilState();
@@ -20,14 +22,7 @@ class _Parte1PerfilState extends State<Parte1Perfil> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
+        automaticallyImplyLeading: false, // Remove o botão voltar
         title: const Text(
           "Formulário - Etapa 1/3",
           style: TextStyle(color: Colors.white),
@@ -177,7 +172,15 @@ class _Parte1PerfilState extends State<Parte1Perfil> {
                       _formKey.currentState!.save();
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (_) => const Parte2Planos()),
+                        MaterialPageRoute(
+                          builder: (_) => Parte2Planos(
+                            userId: widget.userId,
+                            nome: nome!,
+                            idade: idade!,
+                            escolaridade: escolaridade,
+                            situacao: situacao,
+                          ),
+                        ),
                       );
                     }
                   },

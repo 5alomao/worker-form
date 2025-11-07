@@ -1,26 +1,29 @@
 import 'package:flutter/material.dart';
-import 'tela_inicial.dart';
 import '../services/storage_service.dart';
-import 'cadastro_page.dart';
+import 'login_page.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+class CadastroPage extends StatefulWidget {
+  const CadastroPage({super.key});
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<CadastroPage> createState() => _CadastroPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _CadastroPageState extends State<CadastroPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   final StorageService _storageService = StorageService();
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -35,7 +38,18 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  void _login() async {
+  void _showSuccessMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  Future<void> _cadastrarUsuario() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
@@ -45,29 +59,37 @@ class _LoginPageState extends State<LoginPage> {
         final email = _emailController.text.trim();
         final password = _passwordController.text.trim();
 
-        // Validar usuário no storage
-        Map<String, dynamic>? user = await _storageService.validateUser(
-          email,
-          password,
-        );
+        // Verificar se email já existe
+        bool emailExiste = await _storageService.emailExists(email);
 
-        if (user != null) {
-          // Login bem-sucedido - navegar para tela principal passando o user_id
-          if (mounted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TelaInicial(userId: user['id']),
-              ),
-            );
-          }
-        } else {
-          // Login falhou - mostrar erro
+        if (emailExiste) {
           setState(() {
             _isLoading = false;
           });
           if (mounted) {
-            _showErrorMessage('E-mail ou senha incorretos');
+            _showErrorMessage('Este e-mail já está cadastrado');
+          }
+          return;
+        }
+
+        // Criar novo usuário
+        await _storageService.createUser(email, password);
+
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (mounted) {
+          _showSuccessMessage('Usuário cadastrado com sucesso!');
+
+          // Aguardar um pouco para mostrar a mensagem e voltar para login
+          await Future.delayed(const Duration(seconds: 1));
+
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+            );
           }
         }
       } catch (e) {
@@ -75,7 +97,7 @@ class _LoginPageState extends State<LoginPage> {
           _isLoading = false;
         });
         if (mounted) {
-          _showErrorMessage('Erro ao conectar com o sistema de armazenamento');
+          _showErrorMessage('Erro ao cadastrar usuário: ${e.toString()}');
         }
       }
     }
@@ -86,21 +108,29 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        title: const Text("Login", style: TextStyle(color: Colors.white)),
+        title: const Text("Cadastro", style: TextStyle(color: Colors.white)),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginPage()),
+            );
+          },
+        ),
       ),
       backgroundColor: Colors.white,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
             children: [
               const SizedBox(height: 40),
               Text(
-                "Bem-vindo!",
+                "Criar Conta",
                 textAlign: TextAlign.left,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
@@ -109,7 +139,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
               const Text(
-                "Faça login para acessar o formulário de pesquisa profissional.",
+                "Preencha os dados abaixo para criar sua conta e acessar o formulário.",
                 textAlign: TextAlign.left,
                 style: TextStyle(fontSize: 16, color: Colors.black54),
               ),
@@ -146,11 +176,23 @@ class _LoginPageState extends State<LoginPage> {
               // Campo Senha
               TextFormField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Senha',
                   hintText: 'Digite sua senha',
                   prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -169,9 +211,49 @@ class _LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
+              const SizedBox(height: 25),
+
+              // Campo Confirmar Senha
+              TextFormField(
+                controller: _confirmPasswordController,
+                obscureText: _obscureConfirmPassword,
+                decoration: InputDecoration(
+                  labelText: 'Confirmar Senha',
+                  hintText: 'Digite novamente sua senha',
+                  prefixIcon: const Icon(Icons.lock_outline),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Confirme sua senha';
+                  }
+                  if (value != _passwordController.text) {
+                    return 'As senhas não coincidem';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 40),
 
-              // Botão Entrar
+              // Botão Cadastrar
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -188,7 +270,7 @@ class _LoginPageState extends State<LoginPage> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  onPressed: _isLoading ? null : _login,
+                  onPressed: _isLoading ? null : _cadastrarUsuario,
                   child: _isLoading
                       ? const SizedBox(
                           width: 20,
@@ -198,28 +280,28 @@ class _LoginPageState extends State<LoginPage> {
                             strokeWidth: 2,
                           ),
                         )
-                      : const Text("ENTRAR"),
+                      : const Text("CADASTRAR"),
                 ),
               ),
               const SizedBox(height: 30),
 
-              // Link para cadastro
+              // Link para voltar ao login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    "Não tem uma conta? ",
+                    "Já tem uma conta? ",
                     style: TextStyle(color: Colors.black54),
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
+                      Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (_) => const CadastroPage()),
+                        MaterialPageRoute(builder: (_) => const LoginPage()),
                       );
                     },
                     child: const Text(
-                      "Cadastre-se",
+                      "Fazer login",
                       style: TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
@@ -228,7 +310,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
               ),
-              const Spacer(),
+              const SizedBox(height: 20),
             ],
           ),
         ),

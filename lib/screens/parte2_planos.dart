@@ -2,7 +2,21 @@ import 'package:flutter/material.dart';
 import 'parte3_expectativas.dart';
 
 class Parte2Planos extends StatefulWidget {
-  const Parte2Planos({super.key});
+  final int userId;
+  final String nome;
+  final String idade;
+  final String escolaridade;
+  final String situacao;
+
+  const Parte2Planos({
+    super.key,
+    required this.userId,
+    required this.nome,
+    required this.idade,
+    required this.escolaridade,
+    required this.situacao,
+  });
+
   @override
   State<Parte2Planos> createState() => _Parte2PlanosState();
 }
@@ -18,14 +32,7 @@ class _Parte2PlanosState extends State<Parte2Planos> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
-          },
-        ),
+        automaticallyImplyLeading: false, // Remove o botão voltar
         title: const Text(
           "Formulário - Etapa 2/3",
           style: TextStyle(color: Colors.white),
@@ -149,7 +156,17 @@ class _Parte2PlanosState extends State<Parte2Planos> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const Parte3Expectativas(),
+                          builder: (_) => Parte3Expectativas(
+                            userId: widget.userId,
+                            nome: widget.nome,
+                            idade: widget.idade,
+                            escolaridade: widget.escolaridade,
+                            situacao: widget.situacao,
+                            planoCarreira: plano,
+                            areaInteresse: area,
+                            experiencia: experiencia,
+                            descricaoExperiencia: descricao,
+                          ),
                         ),
                       );
                     }
