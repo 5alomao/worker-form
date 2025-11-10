@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:worker_form/screens/pokemon_api.dart';
 import '../services/storage_service.dart';
 import 'tela_inicial.dart';
 import 'parte1_perfil.dart';
@@ -65,6 +66,13 @@ class _TelaFinalState extends State<TelaFinal> {
       context,
       MaterialPageRoute(builder: (_) => Parte1Perfil(userId: widget.userId)),
       (route) => false,
+    );
+  }
+
+  void _obterRecompensa() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => PokemonAPI(userId: widget.userId)),
     );
   }
 
@@ -219,6 +227,32 @@ class _TelaFinalState extends State<TelaFinal> {
                           Icon(Icons.refresh, size: 20),
                           SizedBox(width: 8),
                           Text("Responder Novamente"),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 30),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        side: const BorderSide(color: Colors.blue, width: 2),
+                      ),
+                      onPressed: _obterRecompensa,
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.catching_pokemon, size: 20),
+                          SizedBox(width: 8),
+                          Text("Obter Recompensa"),
                         ],
                       ),
                     ),
