@@ -56,7 +56,7 @@ class StorageService {
   }
 
   // Criar novo usuário
-  Future<int> createUser(String email, String password) async {
+  Future<int> createUser(String email, String password, {String userType = 'usuario'}) async {
     try {
       List<String> users = prefs.getStringList('users') ?? [];
       int nextId = users.length + 1;
@@ -65,6 +65,7 @@ class StorageService {
         'id': nextId,
         'email': email,
         'password_hash': _hashPassword(password),
+        'user_type': userType,
         'created_at': DateTime.now().toIso8601String(),
       };
 
@@ -145,6 +146,121 @@ class StorageService {
     } catch (e) {
       debugPrint('Erro ao buscar respostas do usuário: $e');
       return [];
+    }
+  }
+
+  // === MÉTODOS CRUD PARA USUÁRIOS ===
+
+  // Listar todos os usuários
+  Future<List<Map<String, dynamic>>> getAllUsers() async {
+    try {
+      List<String> users = prefs.getStringList('users') ?? [];
+      List<Map<String, dynamic>> result = [];
+      
+      for (String userJson in users) {
+        Map<String, dynamic> user = json.decode(userJson);
+        // Remove a senha hash por segurança
+        user.remove('password_hash');
+        result.add(user);
+      }
+      
+      // Ordenar por email
+      result.sort((a, b) => (a['email'] ?? '').compareTo(b['email'] ?? ''));
+      
+      return result;
+    } catch (e) {
+      debugPrint('Erro ao buscar usuários: $e');
+      return [];
+    }
+  }
+
+  // Buscar usuário por ID
+  Future<Map<String, dynamic>?> getUserById(int userId) async {
+    try {
+      List<String> users = prefs.getStringList('users') ?? [];
+      
+      for (String userJson in users) {
+        Map<String, dynamic> user = json.decode(userJson);
+        if (user['id'] == userId) {
+          // Remove a senha hash por segurança
+          user.remove('password_hash');
+          return user;
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Erro ao buscar usuário: $e');
+      return null;
+    }
+  }
+
+  // Atualizar senha do usuário
+  Future<bool> updateUserPassword(int userId, String oldPassword, String newPassword) async {
+    try {
+      List<String> users = prefs.getStringList('users') ?? [];
+      String oldPasswordHash = _hashPassword(oldPassword);
+      
+      for (int i = 0; i < users.length; i++) {
+        Map<String, dynamic> user = json.decode(users[i]);
+        if (user['id'] == userId) {
+          // Verificar senha antiga
+          if (user['password_hash'] != oldPasswordHash) {
+            return false; // Senha antiga incorreta
+          }
+          
+          // Atualizar senha
+          user['password_hash'] = _hashPassword(newPassword);
+          users[i] = json.encode(user);
+          await prefs.setStringList('users', users);
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Erro ao atualizar senha: $e');
+      return false;
+    }
+  }
+
+  // Excluir usuário
+  Future<bool> deleteUser(int userId) async {
+    try {
+      List<String> users = prefs.getStringList('users') ?? [];
+      
+      for (int i = 0; i < users.length; i++) {
+        Map<String, dynamic> user = json.decode(users[i]);
+        if (user['id'] == userId) {
+          users.removeAt(i);
+          await prefs.setStringList('users', users);
+          
+          // Também remove as respostas do formulário deste usuário
+          await _deleteUserFormResponses(userId);
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      debugPrint('Erro ao excluir usuário: $e');
+      return false;
+    }
+  }
+
+  // Método auxiliar para remover respostas do usuário excluído
+  Future<void> _deleteUserFormResponses(int userId) async {
+    try {
+      List<String> responses = prefs.getStringList('form_responses') ?? [];
+      List<String> filteredResponses = [];
+      
+      for (String responseJson in responses) {
+        Map<String, dynamic> response = json.decode(responseJson);
+        if (response['user_id'] != userId) {
+          filteredResponses.add(responseJson);
+        }
+      }
+      
+      await prefs.setStringList('form_responses', filteredResponses);
+    } catch (e) {
+      debugPrint('Erro ao remover respostas do usuário: $e');
     }
   }
 }

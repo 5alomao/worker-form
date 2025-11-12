@@ -18,6 +18,7 @@ class _CadastroPageState extends State<CadastroPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  String _userType = 'usuario'; // Padrão: usuário
 
   @override
   void dispose() {
@@ -73,7 +74,7 @@ class _CadastroPageState extends State<CadastroPage> {
         }
 
         // Criar novo usuário
-        await _storageService.createUser(email, password);
+        await _storageService.createUser(email, password, userType: _userType);
 
         setState(() {
           _isLoading = false;
@@ -169,6 +170,35 @@ class _CadastroPageState extends State<CadastroPage> {
                     return 'Digite um e-mail válido';
                   }
                   return null;
+                },
+              ),
+              const SizedBox(height: 25),
+
+              // Campo Tipo de Usuário
+              DropdownButtonFormField<String>(
+                value: _userType,
+                decoration: InputDecoration(
+                  labelText: 'Tipo de Usuário',
+                  prefixIcon: const Icon(Icons.person_outline),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 14,
+                  ),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'usuario', child: Text('Usuário')),
+                  DropdownMenuItem(
+                    value: 'admin',
+                    child: Text('Administrador'),
+                  ),
+                ],
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _userType = newValue ?? 'usuario';
+                  });
                 },
               ),
               const SizedBox(height: 25),
