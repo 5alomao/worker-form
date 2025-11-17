@@ -56,7 +56,11 @@ class StorageService {
   }
 
   // Criar novo usuário
-  Future<int> createUser(String email, String password, {String userType = 'usuario'}) async {
+  Future<int> createUser(
+    String email,
+    String password, {
+    String userType = 'usuario',
+  }) async {
     try {
       List<String> users = prefs.getStringList('users') ?? [];
       int nextId = users.length + 1;
@@ -156,17 +160,17 @@ class StorageService {
     try {
       List<String> users = prefs.getStringList('users') ?? [];
       List<Map<String, dynamic>> result = [];
-      
+
       for (String userJson in users) {
         Map<String, dynamic> user = json.decode(userJson);
         // Remove a senha hash por segurança
         user.remove('password_hash');
         result.add(user);
       }
-      
+
       // Ordenar por email
       result.sort((a, b) => (a['email'] ?? '').compareTo(b['email'] ?? ''));
-      
+
       return result;
     } catch (e) {
       debugPrint('Erro ao buscar usuários: $e');
@@ -178,7 +182,7 @@ class StorageService {
   Future<Map<String, dynamic>?> getUserById(int userId) async {
     try {
       List<String> users = prefs.getStringList('users') ?? [];
-      
+
       for (String userJson in users) {
         Map<String, dynamic> user = json.decode(userJson);
         if (user['id'] == userId) {
@@ -195,11 +199,15 @@ class StorageService {
   }
 
   // Atualizar senha do usuário
-  Future<bool> updateUserPassword(int userId, String oldPassword, String newPassword) async {
+  Future<bool> updateUserPassword(
+    int userId,
+    String oldPassword,
+    String newPassword,
+  ) async {
     try {
       List<String> users = prefs.getStringList('users') ?? [];
       String oldPasswordHash = _hashPassword(oldPassword);
-      
+
       for (int i = 0; i < users.length; i++) {
         Map<String, dynamic> user = json.decode(users[i]);
         if (user['id'] == userId) {
@@ -207,7 +215,7 @@ class StorageService {
           if (user['password_hash'] != oldPasswordHash) {
             return false; // Senha antiga incorreta
           }
-          
+
           // Atualizar senha
           user['password_hash'] = _hashPassword(newPassword);
           users[i] = json.encode(user);
@@ -226,13 +234,13 @@ class StorageService {
   Future<bool> deleteUser(int userId) async {
     try {
       List<String> users = prefs.getStringList('users') ?? [];
-      
+
       for (int i = 0; i < users.length; i++) {
         Map<String, dynamic> user = json.decode(users[i]);
         if (user['id'] == userId) {
           users.removeAt(i);
           await prefs.setStringList('users', users);
-          
+
           // Também remove as respostas do formulário deste usuário
           await _deleteUserFormResponses(userId);
           return true;
@@ -250,17 +258,69 @@ class StorageService {
     try {
       List<String> responses = prefs.getStringList('form_responses') ?? [];
       List<String> filteredResponses = [];
-      
+
       for (String responseJson in responses) {
         Map<String, dynamic> response = json.decode(responseJson);
         if (response['user_id'] != userId) {
           filteredResponses.add(responseJson);
         }
       }
-      
+
       await prefs.setStringList('form_responses', filteredResponses);
     } catch (e) {
       debugPrint('Erro ao remover respostas do usuário: $e');
+    }
+  }
+
+  // === MÉTODOS PARA QUIZ ===
+
+  // Salvar resultado do quiz
+  Future<int> insertQuizResult(Map<String, dynamic> quizData) async {
+    try {
+      List<String> results = prefs.getStringList('quiz_results') ?? [];
+      int nextId = results.length + 1;
+
+      quizData['id'] = nextId;
+      quizData['created_at'] = DateTime.now().toIso8601String();
+
+      results.add(json.encode(quizData));
+      await prefs.setStringList('quiz_results', results);
+
+      return nextId;
+    } catch (e) {
+      debugPrint('Erro ao salvar resultado do quiz: $e');
+      rethrow;
+    }
+  }
+
+  // Buscar todos os resultados do quiz
+  Future<List<Map<String, dynamic>>> getAllQuizResults() async {
+    try {
+      List<String> results = prefs.getStringList('quiz_results') ?? [];
+      List<Map<String, dynamic>> resultList = [];
+
+      for (String resultJson in results) {
+        resultList.add(json.decode(resultJson));
+      }
+
+      // Ordenar por data (mais recente primeiro)
+      resultList.sort((a, b) => b['created_at'].compareTo(a['created_at']));
+
+      return resultList;
+    } catch (e) {
+      debugPrint('Erro ao buscar resultados do quiz: $e');
+      return [];
+    }
+  }
+
+  // Buscar resultados do quiz por usuário
+  Future<List<Map<String, dynamic>>> getQuizResultsByUser(int userId) async {
+    try {
+      List<Map<String, dynamic>> allResults = await getAllQuizResults();
+      return allResults.where((result) => result['user_id'] == userId).toList();
+    } catch (e) {
+      debugPrint('Erro ao buscar resultados do quiz do usuário: $e');
+      return [];
     }
   }
 }

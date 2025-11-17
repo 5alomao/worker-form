@@ -3,6 +3,8 @@ import 'parte1_perfil.dart';
 import 'visualizar_resultados.dart';
 import 'gerenciar_usuarios.dart';
 import 'editar_perfil.dart';
+import 'quiz_tecnologia.dart';
+import 'visualizar_resultados_quiz.dart';
 import '../services/storage_service.dart';
 
 class TelaInicial extends StatefulWidget {
@@ -248,6 +250,90 @@ class _TelaInicialState extends State<TelaInicial> {
                                 Icon(Icons.analytics_outlined, size: 24),
                                 SizedBox(width: 12),
                                 Text("Visualizar Resultados"),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+
+                        // Botão Quiz de Tecnologia
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 20,
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      QuizTecnologia(userId: widget.userId),
+                                ),
+                              );
+                            },
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.quiz, size: 24),
+                                SizedBox(width: 12),
+                                Text("Responder Quiz"),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+
+                        // Botão Visualizar Resultados do Quiz
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.green,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 40,
+                                vertical: 20,
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                              side: const BorderSide(
+                                color: Colors.green,
+                                width: 2,
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => VisualizarResultadosQuiz(
+                                    userId: widget.userId,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.leaderboard, size: 24),
+                                SizedBox(width: 12),
+                                Text("Ver Resultados do Quiz"),
                               ],
                             ),
                           ),
